@@ -1,5 +1,6 @@
 import dummy
-from nam import NamFilter
+from nofilter import NoFilter
+from kalman_filter import SimpleKalmanFilter, ComplexKalmanFilter
 # TODO: Add your filters here
 filters = {
     "Dummy": {
@@ -11,8 +12,14 @@ filters = {
         "randomnoise": dummy.DummyFilter(2),
         "angular": dummy.DummyFilter(2),
     },
-    "NAM_Team": {
+    "NoFilter": {
         "color": [0.5, 0.1, 0.9],
-        "constantposition": NamFilter(),
+        "constantposition": NoFilter(),
+        "constantvelocity": NoFilter()
+    },
+    "Our Team": {
+        "color": [0.5, 0.3, 0.2],
+        "constantposition": ComplexKalmanFilter(),
+        "constantvelocity": ComplexKalmanFilter()
     }
 }
