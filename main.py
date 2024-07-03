@@ -110,10 +110,6 @@ if args.mode is None:
     print("Must specify mode")
     exit()
 
-if args.mode not in list_of_modes.keys():
-    print("Unknown mode: ", args.mode)
-    exit()
-
 if args.mode == "all":
     s = set()
     for team in filters.keys():
@@ -141,5 +137,10 @@ if args.mode == "all":
     print("overall")
     print_score_statistics(scores, args, multiruns=False)
     # print(scores)
+
+elif args.mode not in list_of_modes.keys():
+    print("Unknown mode: ", args.mode)
+    exit()
+
 else:
     scores, ordered = run_mode(args.mode)

@@ -1,6 +1,11 @@
 import dummy
 from nofilter import NoFilter
-from kalman_filter import SimpleKalmanFilter, ComplexKalmanFilter
+from filter_constantposition import ComplexKalmanFilter
+from filter_randomnoise import KalmanFilterWithRandomNoise
+from filter_constantvelocity import KalmanFilterConstantVelocity
+from filter_constantvelocity2 import KalmanFilterConstantVelocityMultiple
+from filter_constantturn import KalmanFilterConstantTurn
+
 # TODO: Add your filters here
 filters = {
     "Dummy": {
@@ -15,11 +20,19 @@ filters = {
     "NoFilter": {
         "color": [0.5, 0.1, 0.9],
         "constantposition": NoFilter(),
-        "constantvelocity": NoFilter()
+        "randomnoise": NoFilter(),
+        "constantvelocity": NoFilter(),
+        "angular": NoFilter(),
+        "constantvelocity2": NoFilter(),
+        "constantturn": NoFilter()
     },
     "Our Team": {
         "color": [0.5, 0.3, 0.2],
         "constantposition": ComplexKalmanFilter(),
-        "constantvelocity": ComplexKalmanFilter()
+        "randomnoise": KalmanFilterWithRandomNoise(),
+        "constantvelocity": KalmanFilterConstantVelocity(),
+        "angular": dummy.DummyFilter(2),
+        "constantvelocity2": KalmanFilterConstantVelocityMultiple(),
+        "constantturn": KalmanFilterConstantTurn()
     }
 }
