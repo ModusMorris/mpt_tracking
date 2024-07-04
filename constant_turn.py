@@ -49,12 +49,6 @@ class ConstantTurnFilter:
         S = H @ self.P @ H.T + R
         K = self.P @ H.T @ np.linalg.inv(S)
 
-        self.state = self.state + K @ innovation
+        self.state += K @ innovation
         self.P = (np.eye(4) - K @ H) @ self.P
-
-        # Ensure P remains symmetric and positive definite
-        self.P = (self.P + self.P.T) / 2
-        eigvals, eigvecs = np.linalg.eigh(self.P)
-        eigvals = np.maximum(eigvals, 1e-6)
-        self.P = eigvecs @ np.diag(eigvals) @ eigvecs.T
         return self.state[:2]  # Return only position
