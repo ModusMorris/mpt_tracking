@@ -1,0 +1,18 @@
+python main.py --mode=constantposition --all
+python main.py --mode=constantposition --debug
+
+python main.py --mode=randomnoise --all
+python main.py --mode=randomnoise --debug
+
+python main.py --mode=angular --all
+python main.py --mode=angular --debug
+
+python main.py --mode=constantvelocity --all
+python main.py --mode=constantvelocity --debug
+
+python main.py --mode=constantvelocity2 --all
+python main.py --mode=constantvelocity2 --debug
+
+python main.py --mode=constantturn --all
+python main.py --mode=constantturn --debug
+

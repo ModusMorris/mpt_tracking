@@ -44,8 +44,8 @@ class RandomNoiseFilter:
     def get_state_covariance(self):
         return self.P
 
-# Initiate the filter
-rn_filter = RandomNoiseFilter(process_noise_var)
+""" # Initiate the filter
+rn_filter = RandomNoiseFilter"""  """(process_noise_var)
 
 # Read the data form the pk file
 with open('randomnoise.pk', 'rb') as file:
@@ -64,3 +64,4 @@ for entry in pk_data:
             #print(f"Current State Estimate: {current_state_estimate}")
             #print(f"Current State Covariance: {current_state_covariance}")
          
+ """
