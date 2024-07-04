@@ -3,6 +3,7 @@ import dummy
 import constant_position
 import random_noise
 import angular
+import constant_turn
 
 # TODO: Add your filters here
 filters = {
@@ -21,7 +22,7 @@ filters = {
         "randomnoise": random_noise.RandomNoiseFilter(2),
         "constantvelocity": dummy.DummyFilter(2),
         "constantvelocity2": dummy.DummyFilter(2),
-        "constantturn": dummy.DummyFilter(2),
+        "constantturn": constant_turn.ConstantTurnFilter(2),
         "angular": angular.AngularFilter(2),
 
     },
