@@ -40,27 +40,3 @@ class RandomNoiseFilter:
 
         return self.x.flatten() # returns the current state estimate as a 1d array
 #bs otherwise main.py will throw an error
-
-    def get_state_covariance(self):
-        return self.P
-
-# Initiate the filter
-rn_filter = RandomNoiseFilter(process_noise_var)
-
-# Read the data form the pk file
-with open('randomnoise.pk', 'rb') as file:
-    pk_data = pickle.load(file)
-
-dt=5 #lets assume the time step is 5 sec, it doesnt change the outcome of this filter 
-#but lets keep it for the further problems
-
-# iterate through the pk measurements and update the filter
-for entry in pk_data:
-    if 'measurements' in entry:
-        measurements = entry['measurements']
-        for measurement in measurements: 
-            current_state_estimate = rn_filter.update(dt, measurement)
-            current_state_covariance = rn_filter.get_state_covariance()
-            #print(f"Current State Estimate: {current_state_estimate}")
-            #print(f"Current State Covariance: {current_state_covariance}")
-         
