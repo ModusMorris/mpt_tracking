@@ -1,10 +1,10 @@
 import numpy as np
 import dummy
+import nam
 import random_noise
 import angular
 import constantvelocity
 import constantvelocity2
-import nam
 import constant_turn
 
 
@@ -22,11 +22,12 @@ filters = {
     "NAMTeam": {
         "color": [0.5, 0.1, 0.9],
         "constantposition": nam.NamFilter(),
-        "randomnoise": random_noise.RandomNoiseFilter(2),
-        "constantvelocity": constantvelocity.KalmanFilterConstantVelocity(),
-        "constantvelocity2": constantvelocity2.KalmanFilterConstantVelocityMultiple(),
-        "constantturn": constant_turn.ConstantTurnFilter(2),
-        "angular": angular.AngularFilter(2),
+        "randomnoise": nam.RandomNoiseFilter(),
+        "angular": nam.AngularFilter() 
+        "constantvelocity": nam.KalmanFilterConstantVelocity(),
+        "constantvelocity2": nam.KalmanFilterConstantVelocityMultiple(),
+        "constantturn": nam.ConstantTurnFilter(turn_rate=0.1),
+
 
     },
 }
