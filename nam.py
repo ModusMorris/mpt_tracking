@@ -4,46 +4,41 @@ import numpy as np
 # Problem 1
 class ConstantpositionFilter:
     def __init__(self):
-        # Der Anfangszustand wird auf einen Nullvektor gesetzt
-        self.state = np.zeros(2)
-        # Anfangsunsicherheit wird auf eine Matrix mit 500 auf der Diagonale gesetzt
-        self.uncertainty = np.eye(2) * 500
-        # Messrauschen wird auf 0.2 gesetzt
-        self.measurement_noise = 0.2
-        # Prozessrauschen wird auf einen sehr kleinen Wert gesetzt
-        self.process_noise = 1e-5
+        self.state = np.zeros(2) # The initial state is set to a zero vector
+        self.uncertainty = np.eye(2) * 500  # Initial uncertainty is set to a matrix with 500 on the diagonal
+        self.measurement_noise = 0.2 
+        self.process_noise = 1e-5  # Process noise is set to a very small value
 
     def reset(self, measurement):
-        # Zustand wird auf die ersten zwei Messwerte gesetzt
-        self.state = np.array(measurement[:2])
-        # Unsicherheit wird zurückgesetzt
-        self.uncertainty = np.eye(2) * 500
+        self.state = np.array(measurement[:2]) # State is set to the first two measurements
+        self.uncertainty = np.eye(2) * 500     # State is set to the first two measurements
         return self.state
 
     def update(self, dt, measurement):
         measurement = np.array(measurement[:2])
         measurement_uncertainty = np.eye(2) * self.measurement_noise**2
 
-        # Der Kalman-Gewinn wird berechnet, um zu bestimmen, wie stark die Vorhersage anhand der neuen Messung angepasst werden sollte.
-        # Mathematisch: K = p*(p+r)^-1
-        # P ist die Unsicherheitsmatrix und R die Messunsicherheit
+# The Kalman gain is calculated to determine how much the prediction should be adjusted based on the new measurement.
+# Mathematically: K = P*(P+R)^-1
+# P is the uncertainty matrix and R is the measurement uncertainty
         kalman_gain = self.uncertainty @ np.linalg.inv(
             self.uncertainty + measurement_uncertainty
         )
-        # Zustand wird aktualisiert
-        # Der neue Zustand wird basierend auf dem Kalman-Gewinn und der Differenz zwischen der Messung 
-        # und dem vorhergesagten Zustand aktualisiert. Mathematisch: x = x + K * (z - x)
-        # x = vorhergesagter Zustand K = Kalman Gewinn und z = Messung
+
+# State is updated
+# The new state is updated based on the Kalman gain and the difference between the measurement 
+# and the predicted state. Mathematically: x = x + K * (z - x)
+# x = predicted state, K = Kalman gain, z = measurement
         self.state = self.state + kalman_gain @ (measurement - self.state)
-        # unsicherheit wird aktualisiert
-        # Die Unsicherheitsmatrix wird angepasst um die verbesserte Schätzung wiederzuspiegeln: P=(I - K * H) * P
-        # I = Einheitsmatrix
+
+#Uncertainty is updated
+# The uncertainty matrix is adjusted to reflect the improved estimate: P = (I - K * H) * P, 
+# where I = identity matrix
         self.uncertainty = (np.eye(2) - kalman_gain) @ self.uncertainty
         return self.state
 
-    # Problem 2
 
-
+# Problem 2
 class RandomNoiseFilter:
     def __init__(self, process_noise_scale=0.04, initial_uncertainty=600):
         self.state = np.zeros((2, 1))  # Initial state vector (x, y)
@@ -93,180 +88,167 @@ class RandomNoiseFilter:
 
 class AngularFilter:
     def __init__(self):
-        # Der Anfangszustand wird auf einen Nullvektor gesetzt
-        self.state = np.zeros(2)  # Initial state (x, y)
-        # Anfangsunsicherheit wird auf eine Matrix mit 500 auf der Diagonale gesetzt
-        self.uncertainty = np.eye(2) * 500  # Initial uncertainty
-        # Messrauschen wird als Matrix mit unterschiedlichen Werten für x und y gesetzt
+        self.state = np.zeros(2)  # Initial state (x, y) is set to a zero vector
+        self.uncertainty = np.eye(2) * 500  # Initial uncertainty is set to a matrix with 500 on the diagonal
+# Measurement noise is a Matrix with normalised variances of distance measurement (r) and angle measurement (phi) on diagonals 
         self.measurement_noise = np.array([[0.01, 0], [0, 0.0025]])  # Measurement noise
-        # Prozessrauschen wird auf eine sehr kleine Matrix gesetzt
-        self.process_noise = np.eye(2) * 1e-5  # Process noise
+        self.process_noise = np.eye(2) * 1e-5  # Process noise set as an identity matrix 2x2 with a tiny value
 
     def reset(self, measurement):
-
-        # Messung in Polarkoordinaten
-        r, phi = measurement
-        # Umrechnung der Polarkoordinaten in kartesische Koordinaten
+        r, phi = measurement  # Initialisation  of the polar coordinates 
+   
+# Coversion of the polar coordinates into the cartesian ones 
         x = r * np.cos(phi)
         y = r * np.sin(phi)
-        # Anfangszustand wird auf die umgerechneten kartesischen Koordinaten gesetzt
-        self.state = np.array([x, y])
-        # Unsicherheit wird zurückgesetzt
-        self.uncertainty = np.eye(2) * 500
+      
+        self.state = np.array([x, y]) # Initial state is set to the now converted Cartesian coordinates
+        self.uncertainty = np.eye(2) * 500 #We reset the uncertainty 
         return self.state
 
     def update(self, dt, measurement, *args, **kwargs):
-        # Messung in Polarkoordinaten
         r, phi = measurement
-
-        # Vorhersageschritt: Unsicherheit aufgrund von Prozessrauschen erhöhe
-        self.uncertainty += self.process_noise
-
-        # Umrechnung der Polarkoordinaten in kartesische Koordinaten
-        measured_x = r * np.cos(phi)
+        self.uncertainty += self.process_noise #Increase uncertainty to take notice of the process noise 
+        measured_x = r * np.cos(phi) #same conversion of the coordinates
         measured_y = r * np.sin(phi)
         measurement_cartesian = np.array([measured_x, measured_y])
 
-        # Umrechnung des Messrauschens von Polarkoordinaten in kartesische Koordinaten
+# Insert the cartesian coordinates into out measurements Covar Matrix H
         H = np.array([[np.cos(phi), -r * np.sin(phi)], [np.sin(phi), r * np.cos(phi)]])
-        R_cartesian = H @ self.measurement_noise @ H.T
+        R_cartesian = H @ self.measurement_noise @ H.T #calculate the measurement noise Covar Matrix R 
 
-        # Berechnung des Kalman-Gewinns
+# Calculate the Innovation Covar matrix S that is needed to calculate the Kalman gain
         S = self.uncertainty + R_cartesian
         K = self.uncertainty @ np.linalg.inv(S)
 
-        # Aktualisierung der Zustandsschätzung
-        y = measurement_cartesian - self.state  # Measurement residual
+   # Innovation calculation and the update of the estimated state
+        y = measurement_cartesian - self.state  # Innovation (prediction error) 
         self.state = self.state + K @ y
 
-        # Aktualisierung der Unsicherheit
+  # Update the uncertainty  matrix P
         I = np.eye(2)
         self.uncertainty = (I - K) @ self.uncertainty
-
         return self.state
 
 
 # Problem 4
 class KalmanFilterConstantVelocity:
     def __init__(self):
-        # Der Anfangszustand wird auf einen Nullvektor gesetzt (Position und Geschwindigkeit)
-        # Zustandsvektor [x,y,vx,vy]
-        self.x = np.zeros(4)
-        # Anfangsunsicherheit wird auf die Einheitsmatrix gesetzt
-        self.P = np.eye(4)
+# The initial state is set to a zero vector (position and speed)
+        self.x = np.zeros(4)   # State vector [x,y,vx,vy]
+        self.P = np.eye(4)  # Initial uncertainty is set to an ide matrix
         # Messrauschen wird als Matrix mit 0.04 auf der Diagonale gesetzt
-        self.R = np.eye(2) * 0.04
-        # Einheitsmatrix
+        self.R = np.eye(2) * 0.04 # Measurement noise is set as a matrix with 0.04 (from the task description) on the diagonal. 
         self.I = np.eye(4)
 
     def reset(self, measurement):
-        # Der Anfangszustand wird auf einen Nullvektor gesetzt
+    # The initial state is set to a zero vector
         self.x = np.zeros(4)
-        # Die ersten zwei Werte des Zustands werden auf die Messwerte gesetzt
+    # The first two values of the state are set to the measurements
         self.x[:2] = measurement[:2]  # Set position to the measurement
-        # Unsicherheit wird zurückgesetzt
+    # Uncertainty is reset
         self.P = np.eye(4)  # Reset uncertainty covariance
         return self.x[:2]
 
     def update(self, dt, measurement):
-        # Zustandsübergangsmatrix für konstante Geschwindigkeit
+    # State transition matrix for constant velocity
         self.F = np.eye(4)  # State transition matrix
-        self.F[0, 2] = dt  # Position x ändert sich mit Geschwindigkeit vx
-        self.F[1, 3] = dt  # Position y ändert sich mit Geschwindigkeit vy
+        self.F[0, 2] = dt  # Position x changes with velocity vx
+        self.F[1, 3] = dt  # Position y changes with velocity vy
 
-        # Vorhersage: Aktualisiere den Zustand und die Unsicherheit basierend auf dem Modell
+    # Prediction: Update the state and uncertainty based on the model
         self.x = self.F @ self.x  # Predicted state estimate
         self.P = self.F @ self.P @ self.F.T  # Predicted uncertainty covariance
 
-        # Messmatrix, die den Zustand auf die Messung abbildet
+    # Measurement matrix that maps the state to the measurement
         H = np.eye(2, 4)
 
-        # Korrekturschritt: Berechne die Differenz zwischen Messung und Vorhersage
-        # Tatsächliche Messung
+    # Correction step: Compute the difference between measurement and prediction
+    # Actual measurement
         z = measurement[:2]
-        # Messabweichung (residual)
+    # Measurement deviation (residual)
         y = z - H @ self.x
 
-        # Berechne den Kalman-Gewinn
+    # Compute the Kalman gain
         S = H @ self.P @ H.T + self.R  # Innovation covariance
-        # Kalman Gewinn
+    # Kalman gain
         K = self.P @ H.T @ np.linalg.inv(S)
 
-        # Aktualisiere den Zustand basierend auf der Messabweichung und dem Kalman-Gewinn
+    # Update the state based on the measurement deviation and Kalman gain
         self.x = self.x + K @ y
 
-        # Aktualisiere die Unsicherheit basierend auf dem Kalman-Gewinn
+    # Update the uncertainty based on the Kalman gain
         self.P = (self.I - K @ H) @ self.P
-        # Rückgabe der geschätzten Position (x, y)
+    # Return the estimated position (x, y)
         return self.x[:2]
 
 
 # Problem 5
 class KalmanFilterConstantVelocityMultiple:
     def __init__(self):
-        # Der Anfangszustand wird auf einen Nullvektor gesetzt (Position und Geschwindigkeit)
-        # Zustandsvektor [x, y, vx, vy]
+        # The initial state is set to a zero vector (position and velocity)
+        # State vector [x, y, vx, vy]
         self.x = np.zeros(4)
-        # Anfangsunsicherheit wird auf die Einheitsmatrix gesetzt
-        # Kovarianzmatrix
+        # Initial uncertainty is set to the identity matrix
+        # Covariance matrix
         self.P = np.eye(4)
-        # Einheitsmatrix
+        # Identity matrix
         self.I = np.eye(4)
 
     def reset(self, measurement):
-        # Der Anfangszustand wird auf einen Nullvektor gesetzt
+        # The initial state is set to a zero vector
         self.x = np.zeros(4)
-        # Die ersten zwei Werte des Zustands werden auf die durchschnittliche Position der ersten 10 Messwerte gesetzt
+        # The first two values of the state are set to the average position of the first 10 measurements
         self.x[:2] = np.mean(
             measurement[:10].reshape(5, 2), axis=0
         )  # Initialize with the average position
-        # Unsicherheit Matrix wird zurückgesetzt
+        # Uncertainty matrix is reset
         self.P = np.eye(4)
         return self.x[:2]
 
     def update(self, dt, measurement):
-        # Extrahiere die fünf Positionsmessungen und die Standardabweichungen
+        # Extract the five position measurements and the standard deviations
         z = measurement[:10].reshape(5, 2)  # Extract the five position measurements
         R_values = measurement[10:]  # Extract the standard deviations
-        # Erstelle die Diagonalmatrix der Messrauschkovarianzen
+        # Create the diagonal matrix of measurement noise covariances
         R = np.diag(
             R_values
         )  # Create the diagonal matrix of measurement noise covariances
 
-        # Zustandsübergangsmatrix für konstante Geschwindigkeit
+        # State transition matrix for constant velocity
         self.F = np.eye(4)  # State transition matrix
-        self.F[0, 2] = dt  # Position x ändert sich mit Geschwindigkeit vx
-        self.F[1, 3] = dt  # Position y ändert sich mit Geschwindigkeit vy
+        self.F[0, 2] = dt  # Position x changes with velocity vx
+        self.F[1, 3] = dt  # Position y changes with velocity vy
 
-        # Vorhersage: Aktualisiere den Zustand und die Unsicherheit basierend auf dem Modell
+        # Prediction: Update the state and uncertainty based on the model
         self.x = self.F @ self.x  # Predicted state estimate
         self.P = self.F @ self.P @ self.F.T  # Predicted covariance matrix
 
-        # Berechnung der Residuen und der Jacobian-Matrix
+        # Calculation of the residuals and the Jacobian matrix
         H = np.zeros((10, 4))
         for i in range(5):
             H[2 * i : 2 * i + 2, :2] = np.eye(2)  # Measurement matrix
 
-        # Korrektur: Berechne die durchschnittliche Position und die Residuen
+        # Correction: Compute the average position and the residuals
         z_mean = np.mean(z, axis=0)  # Average position
         y = (
             z_mean - self.x[:2]
-        )  # Residuum basierend auf der durchschnittlichen Position
+        )  # Residual based on the average position
 
-        # Skalieren der Residuen entsprechend der Standardabweichungen
+        # Scale the residuals according to the standard deviations
         y = np.concatenate([y for _ in range(5)])
 
-        # Berechne den Kalman-Gewinn
+        # Compute the Kalman gain
         S = H @ self.P @ H.T + R  # Innovation covariance
         K = self.P @ H.T @ np.linalg.inv(S)  # Kalman gain
 
-        # Aktualisiere den Zustand basierend auf den Residuen und dem Kalman-Gewinn
+        # Update the state based on the residuals and the Kalman gain
         self.x = self.x + K @ y  # Updated state estimate
 
-        # Aktualisiere die Unsicherheit basierend auf dem Kalman-Gewinn
+        # Update the uncertainty based on the Kalman gain
         self.P = (self.I - K @ H) @ self.P  # Updated covariance matrix
 
-        return self.x[:2]  # Rückgabe der geschätzten Position (x, y)
+        return self.x[:2]  # Return the estimated position (x, y)
+
 
 
 # Problem 6
